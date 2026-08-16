@@ -60,39 +60,6 @@ public class NԀΛ implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 			findView("free_tag").post(() -> setText("free_tag", getString("free_tag")));
 		})); //更改主页文本
 
-		Class<?> service = findClass("com.wrongchao.v2vpn.service.SeTunnelVpnService", cl);
-		Class<?> snackbar = matchClass(c -> c.addUsingString("suitable parent"));
-		Field connectStatus = matchField(f -> f.declaredClass(service).type(boolean.class));
-		Method makeSnackbar = matchMethod(m -> m.declaredClass(snackbar).returnType(snackbar));
-		Method showSnackbar = matchMethod(m -> m.declaredClass(snackbar).paramCount(0).modifiers(Modifier.PUBLIC | Modifier.FINAL));
-		findAndHookMethod(service, "onCreate", after(p -> vpnService = (Service) p.thisObject));
-		bridge.findMethod(FindMethod.create().matcher(MethodMatcher.create().name("onCheckedChanged"))).forEach(m -> { try { hookMethod(m.getMethodInstance(cl), before(p -> {
-			CompoundButton button = (CompoundButton) p.args[0];
-			if (getBooleanField(vpnService, connectStatus.getName())) {
-				button.setChecked(!(boolean) p.args[1]);
-				callMethod(callStaticMethod(snackbar, makeSnackbar.getName(), button, getString("snackbar_disconnect_before_turn_switch")), showSnackbar.getName());
-				p.setResult(null);
-			}
-		}));} catch (NoSuchMethodException e) { throw new RuntimeException(e); }}); //白名单变更需重连后才生效，所以限制在断开状态下设置，避免用户误认为此设置无效
-
-		Class<?> appItem = matchClass(c -> c.addUsingString("AppItem"));
-		FieldMatcher field = FieldMatcher.create().declaredClass(appItem).type(boolean.class).modifiers(Modifier.PUBLIC, MatchType.Equals);
-		Class<?> appListAdapter = matchClass(c -> c.addMethod(MethodMatcher.create().addUsingField(field)).addMethod(MethodMatcher.create().paramTypes(List.class)));
-		Field shownList = matchField(f -> f.declaredClass(appListAdapter).addReadMethod(MethodMatcher.create().declaredClass(appListAdapter).paramCount(0).returnType(int.class)).addWriteMethod(MethodMatcher.create().declaredClass(appListAdapter).paramTypes(List.class)));
-		Field isAppItemEnabled = bridge.findField(FindField.create().matcher(field)).single().getFieldInstance(cl);
-		hookMethod(matchMethod(m -> m.declaredClass(appListAdapter).paramTypes(List.class)), after(p -> {
-			Object adapter = p.thisObject;
-			List orig = (List) getObjectField(adapter, shownList.getName());
-			appCount = orig.size(); if (appCount <= 1) return;
-			int enabled = 0, disabled;
-			for (int i = 0; i < appCount; i++) if (getBooleanField(orig.get(i), isAppItemEnabled.getName())) enabled++;
-			disabled = appCount - enabled; boolean shouldPinEnabledToTop = enabled < disabled;
-			ArrayList list = new ArrayList();
-			for (int i = 0; i < appCount; i++) if (getBooleanField(orig.get(i), isAppItemEnabled.getName()) == shouldPinEnabledToTop) list.add(orig.get(i));
-			for (int i = 0; i < appCount; i++) if (getBooleanField(orig.get(i), isAppItemEnabled.getName()) != shouldPinEnabledToTop) list.add(orig.get(i));
-			setObjectField(adapter, shownList.getName(), list);
-		})); //若只有少数应用启用代理，则将已启用的项置顶，方便后续再次调整
-
 		Class<?> homeMenuClickListener = matchClass(c -> c.addMethod(MethodMatcher.create().name("onMenuItemClick")).addField(FieldMatcher.create().type(homeFrag)));
 		Class<?> baseFragment = matchClass(c -> c.addMethod(MethodMatcher.create().name("onCreateContextMenu")));
 		Class<?> navController = matchClass(c -> c.addUsingString("destination found"));
@@ -115,6 +82,39 @@ public class NԀΛ implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 			item.setTooltipText(getString("menu_tooltip"));
 			menu.findItem(getIdentifier("menu_share")).setVisible(false);
 		})); //精简顶部按钮
+
+		Class<?> service = findClass("com.wrongchao.v2vpn.service.SeTunnelVpnService", cl);
+		Class<?> snackbar = matchClass(c -> c.addUsingString("suitable parent"));
+		Field connectStatus = matchField(f -> f.declaredClass(service).type(boolean.class));
+		Method makeSnackbar = matchMethod(m -> m.declaredClass(snackbar).returnType(snackbar));
+		Method showSnackbar = matchMethod(m -> m.declaredClass(snackbar).paramCount(0).modifiers(Modifier.PUBLIC | Modifier.FINAL));
+		findAndHookMethod(service, "onCreate", after(p -> vpnService = (Service) p.thisObject));
+		bridge.findMethod(FindMethod.create().matcher(MethodMatcher.create().name("onCheckedChanged"))).forEach(m -> { try { hookMethod(m.getMethodInstance(cl), before(p -> {
+			CompoundButton button = (CompoundButton) p.args[0];
+			if (getBooleanField(vpnService, connectStatus.getName())) {
+				button.setChecked(!(boolean) p.args[1]);
+				callMethod(callStaticMethod(snackbar, makeSnackbar.getName(), button, getString("snackbar_disconnect_before_turn_switch")), showSnackbar.getName());
+				p.setResult(null);
+			}
+		}));} catch (NoSuchMethodException e) { throw new RuntimeException(e); }}); //由于白名单修改需重连后才生效，所以限制仅能在断开状态下设置，避免用户误认为此设置无效
+
+		Class<?> appItem = matchClass(c -> c.addUsingString("AppItem"));
+		FieldMatcher field = FieldMatcher.create().declaredClass(appItem).type(boolean.class).modifiers(Modifier.PUBLIC, MatchType.Equals);
+		Class<?> appListAdapter = matchClass(c -> c.addMethod(MethodMatcher.create().addUsingField(field)).addMethod(MethodMatcher.create().paramTypes(List.class)));
+		Field shownList = matchField(f -> f.declaredClass(appListAdapter).addReadMethod(MethodMatcher.create().declaredClass(appListAdapter).paramCount(0).returnType(int.class)).addWriteMethod(MethodMatcher.create().declaredClass(appListAdapter).paramTypes(List.class)));
+		Field isAppItemEnabled = bridge.findField(FindField.create().matcher(field)).single().getFieldInstance(cl);
+		hookMethod(matchMethod(m -> m.declaredClass(appListAdapter).paramTypes(List.class)), after(p -> {
+			Object adapter = p.thisObject;
+			List orig = (List) getObjectField(adapter, shownList.getName());
+			appCount = orig.size(); if (appCount <= 1) return;
+			int enabled = 0, disabled;
+			for (int i = 0; i < appCount; i++) if (getBooleanField(orig.get(i), isAppItemEnabled.getName())) enabled++;
+			disabled = appCount - enabled; boolean shouldPinEnabledToTop = enabled < disabled;
+			ArrayList list = new ArrayList();
+			for (int i = 0; i < appCount; i++) if (getBooleanField(orig.get(i), isAppItemEnabled.getName()) == shouldPinEnabledToTop) list.add(orig.get(i));
+			for (int i = 0; i < appCount; i++) if (getBooleanField(orig.get(i), isAppItemEnabled.getName()) != shouldPinEnabledToTop) list.add(orig.get(i));
+			setObjectField(adapter, shownList.getName(), list);
+		})); //若只有少数应用启用代理，则将已启用的项置顶，方便后续再次调整
 
 		hookMethod(makeSnackbar, before(p -> { if (p.args[1].toString().equals(getText("snackbar_tarffic_overflow"))) p.args[1] = getString("snackbar_connect_failure"); }));
 		findAndHookMethod("androidx.appcompat.widget.Toolbar", cl, "setTitle", CharSequence.class, before(p -> { if (p.args[0].toString().equals(getText("menu_app_list"))) p.args[0] = getString("menu_app_list"); }));
