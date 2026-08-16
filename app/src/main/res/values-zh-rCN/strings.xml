@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="desc">V2VPN优化增强</string>
+	<string name="remain_summary">高速节点\n无限流量</string>
+	<string name="free_tag">免费</string>
+	<string name="snackbar_disconnect_before_turn_switch">请先断开连接再设置名单</string>
+	<string name="snackbar_connect_failure">连接失败</string>
+	<string name="menu_app_list">白名单</string>
+	<string name="menu_tooltip">设置</string>
+	<string name="header_switch">全体开关</string>
+	<string name="header_loading">加载中…</string>
+	<string name="header_failed">加载失败，请检查是否已授予读取应用列表权限</string>
+</resources>

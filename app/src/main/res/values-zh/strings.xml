@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="desc">V2VPN優化增强</string>
+	<string name="remain_summary">高速節點\n無限流量</string>
+	<string name="free_tag">免費</string>
+	<string name="snackbar_disconnect_before_turn_switch">請先斷開連接再設置名單</string>
+	<string name="snackbar_connect_failure">連接失敗</string>
+	<string name="menu_app_list">白名單</string>
+	<string name="menu_tooltip">設置</string>
+	<string name="header_switch">全體開關</string>
+	<string name="header_loading">加載中…</string>
+	<string name="header_failed">加載失敗，請檢查是否已授予讀取應用列表權限</string>
+</resources>

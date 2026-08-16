@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="name" translatable="false">NԀΛ↊Λ</string>
+	<string name="desc">Enhance V2VPN</string>
+	<string name="targ" translatable="false">com.wrongchao.v2vpn</string>
+	<string name="remain_summary">High-speed Node\nUnlimited traffic</string>
+	<string name="free_tag">Free</string>
+	<string name="snackbar_disconnect_before_turn_switch">Disconnect and turn the switch again.</string>
+	<string name="snackbar_connect_failure">Connection failed.</string>
+	<string name="menu_app_list">Apps using VPN</string>
+	<string name="menu_tooltip">Whitelist</string>
+	<string name="header_switch">Switch for all apps</string>
+	<string name="header_loading">Loading...</string>
+	<string name="header_failed">Failed to load apps. The permission to get installed apps needs to be granted.</string>
+</resources>
