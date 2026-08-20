@@ -21,7 +21,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.*;
 
-public class NԀΛ implements IXposedHookLoadPackage, IXposedHookZygoteInit {
+public class NԀΛ implements IXposedHookZygoteInit, IXposedHookLoadPackage {
 	public static XModuleResources mRes;
 	private DexKitBridge bridge; private ClassLoader cl; private Resources res;
 	private Activity mainActivity; private Service vpnService; private int appCount;
@@ -37,8 +37,7 @@ public class NԀΛ implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 	private View findView(String name){return findView("id",name);} private View findView(String type,String name){return mainActivity.findViewById(getIdentifier(type,name));}
 	private void setText(String tv,String txt){((TextView)findView(tv)).setText(txt);} private String getText(String name){return res.getString(res.getIdentifier(name,"string",getString("targ")));}
 	@Override public void initZygote(StartupParam startupParam){mRes=XModuleResources.createInstance(startupParam.modulePath,null);}
-	@Override
-	public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
+	@Override public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
 		if (!lpparam.packageName.equals(getString("targ"))) return; cl = lpparam.classLoader; bridge = DexKitBridge.create(lpparam.appInfo.sourceDir);
 		Class<?> homeFrag = findClass("com.wrongchao.v2vpn.ui.home.HomeFragment", cl);
 		Class<?> blackListFrag = findClass("com.wrongchao.v2vpn.ui.appblacklist.AppBlackListFragment", cl);
@@ -73,7 +72,6 @@ public class NԀΛ implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 			callMethod(controller, navigate.getName(), getIdentifier("nav_app_blacklist"), null);
 			return true;
 		})); //修改按钮入口
-
 		findAndHookMethod("androidx.appcompat.widget.Toolbar", cl, "setNavigationIcon", Drawable.class, replace(p -> null));
 		hookMethod(matchMethod(m -> m.declaredClass(homeFrag).paramTypes(Menu.class, MenuInflater.class)), after(p -> {
 			Menu menu = (Menu) p.args[0];
@@ -82,6 +80,7 @@ public class NԀΛ implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 			item.setTooltipText(getString("menu_tooltip"));
 			menu.findItem(getIdentifier("menu_share")).setVisible(false);
 		})); //精简顶部按钮
+		hookMethod(navigate, before(p -> { if ((int) p.args[0] == getIdentifier("nav_rate_us")) p.setResult(null); })); //拦截“评价我们”弹窗
 
 		Class<?> service = findClass("com.wrongchao.v2vpn.service.SeTunnelVpnService", cl);
 		Class<?> snackbar = matchClass(c -> c.addUsingString("suitable parent"));
